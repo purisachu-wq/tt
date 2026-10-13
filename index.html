@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ฟาร์มคำนามสุดสนุก</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@500;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e6f5d3; --ink:#1d3b2a; --card:#ffffff; --card-ink:#1d3b2a; --line:#1d3b2a; --shadow:#1d3b2a;
+  --muted:#4f6b58; --leaf:#2f9e4f; --leaf-d:#1f6b3a; --sun:#ffc83d; --chip:#fff4c4;
+  --good:#17803f; --good-bg:#d6f4df; --bad:#c43830; --bad-bg:#fde2df; --info-bg:#eaf6ff;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f2418; --ink:#e9f7e6; --card:#1b3a29; --card-ink:#eef9ec; --line:#5aa877; --shadow:#06120b;
+    --muted:#a6c9b0; --chip:#2e4b36; --good:#6ee79a; --good-bg:#14452a; --bad:#ff9087; --bad-bg:#4a1f1d; --info-bg:#173246;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f2418; --ink:#e9f7e6; --card:#1b3a29; --card-ink:#eef9ec; --line:#5aa877; --shadow:#06120b;
+  --muted:#a6c9b0; --chip:#2e4b36; --good:#6ee79a; --good-bg:#14452a; --bad:#ff9087; --bad-bg:#4a1f1d; --info-bg:#173246;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:'Sarabun','Noto Sans Thai',system-ui,sans-serif; font-size:17px; line-height:1.5;
+}
+.emoji{font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
+button{font-family:inherit}
+
+/* ---------- layout ---------- */
+.app{max-width:1100px; margin:0 auto; padding:10px 12px 24px; display:grid; gap:10px; grid-template-columns:minmax(0,1fr)}
+.hud{grid-area:hud} .scene{grid-area:scene} .quiz{grid-area:quiz}
+@media (min-width:900px){
+  .app{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); grid-template-areas:"hud hud" "scene quiz"; gap:14px; padding:16px}
+}
+.card{background:var(--card); color:var(--card-ink); border:3px solid var(--line); border-radius:20px; box-shadow:0 5px 0 var(--shadow)}
+
+/* ---------- HUD ---------- */
+.hud{padding:10px 12px 12px}
+.hud-top{display:flex; align-items:center; justify-content:space-between; gap:10px}
+.brand{font-family:'Mali','Sarabun',sans-serif; font-weight:700; font-size:1.15rem; line-height:1.2}
+.brand small{display:block; font-family:'Sarabun',sans-serif; font-weight:400; font-size:.8rem; color:var(--muted)}
+.timer{
+  display:flex; align-items:center; gap:8px; padding:2px 16px; border-radius:999px;
+  background:var(--sun); color:#3b2a00; border:3px solid #3b2a00;
+  font-weight:700; font-size:2.1rem; line-height:1.25; font-variant-numeric:tabular-nums;
+}
+.timer .lbl{font-size:.8rem; font-weight:600}
+.timer.low{background:var(--bad); color:#fff; border-color:#5b0f0b}
+@media (prefers-reduced-motion:no-preference){ .timer.low{animation:pulse 1s ease-in-out infinite} }
+@keyframes pulse{50%{transform:scale(1.06)}}
+.bar{height:12px; border-radius:999px; background:rgba(127,127,127,.28); margin:10px 0; overflow:hidden; border:2px solid var(--line)}
+.bar>i{display:block; height:100%; width:100%; background:var(--leaf); transition:width .3s linear}
+.bar.low>i{background:var(--bad)}
+.chips{display:grid; grid-template-columns:repeat(4,1fr); gap:6px}
+.chip{background:var(--chip); border-radius:12px; padding:4px 6px; text-align:center; line-height:1.2}
+.chip span{display:block; font-size:.78rem; color:var(--muted)}
+.chip b{font-size:1.3rem}
+
+/* ---------- scene ---------- */
+.scene{position:relative; overflow:hidden; min-height:240px; background:#8fd3f4}
+@media (min-width:900px){ .scene{min-height:470px} }
+.scene svg.bg{position:absolute; inset:0; width:100%; height:100%; display:block}
+.basket{
+  position:absolute; top:10px; right:10px; z-index:3; display:flex; align-items:center; gap:6px;
+  background:var(--card); color:var(--card-ink); border:3px solid var(--line); border-radius:999px;
+  padding:0 12px 0 8px; font-weight:700; font-size:1.1rem;
+}
+.basket .ico{font-size:1.5rem; line-height:1.4}
+.field{position:absolute; left:4%; right:4%; top:50%; bottom:10px; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(2,1fr); gap:4px 10px; z-index:2}
+.plot{position:relative; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; min-height:0; border-radius:14px}
+.plot.active{background:rgba(255,255,255,.3); box-shadow:inset 0 0 0 3px var(--sun)}
+.plant{
+  position:relative; z-index:1; margin-bottom:-6px; line-height:1; height:1.1em; font-size:clamp(22px,6.5vw,38px);
+  transform-origin:50% 100%; filter:drop-shadow(0 2px 0 rgba(0,0,0,.2));
+}
+@media (min-width:900px){ .plant{font-size:50px} }
+.soil{
+  width:90%; height:min(38%,34px); border-radius:50% 50% 45% 45%/60% 60% 40% 40%;
+  background:repeating-linear-gradient(100deg,#6b3f22 0 8px,#7d4b2a 8px 16px); border:2px solid #4a2a15;
+}
+@media (min-width:900px){ .soil{height:min(34%,40px)} }
+.drop{position:absolute; top:0; left:50%; z-index:4; font-size:20px; pointer-events:none}
+.fly{position:fixed; z-index:30; pointer-events:none; line-height:1; margin:0}
+
+/* ---------- quiz ---------- */
+.quiz{padding:14px}
+.qhead{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:8px}
+.qno{background:var(--chip); border-radius:999px; padding:0 12px; font-weight:700; font-size:.95rem}
+.qtag{font-family:'Mali','Sarabun',sans-serif; font-weight:700; color:var(--leaf-d)}
+:root[data-theme="dark"] .qtag{color:#8fe0a8}
+.qtext{font-size:1.3rem; font-weight:700; line-height:1.45; margin:4px 0 12px; min-height:3.9rem}
+.opts{display:grid; grid-template-columns:1fr 1fr; gap:8px}
+.opts.long{grid-template-columns:1fr}
+.opt{
+  display:flex; align-items:center; gap:10px; min-height:58px; padding:8px 12px; text-align:left;
+  background:var(--card); color:var(--card-ink); border:3px solid var(--line); border-radius:14px;
+  font-size:1.08rem; font-weight:600; line-height:1.35; cursor:pointer; box-shadow:0 3px 0 var(--shadow);
+  transition:transform .08s, box-shadow .08s, background .15s;
+}
+.opt .ltr{
+  flex:none; width:30px; height:30px; border-radius:50%; display:grid; place-items:center;
+  background:var(--leaf); color:#fff; font-weight:700; font-size:1rem;
+}
+.opt:hover:not(:disabled){background:var(--chip)}
+.opt:active:not(:disabled){transform:translateY(3px); box-shadow:0 0 0 var(--shadow)}
+.opt:focus-visible{outline:4px solid var(--sun); outline-offset:2px}
+.opt.right{background:var(--good-bg); border-color:var(--good)}
+.opt.right .ltr{background:var(--good)}
+.opt.wrong{background:var(--bad-bg); border-color:var(--bad); text-decoration:line-through; opacity:.75}
+.opt.wrong .ltr{background:var(--bad)}
+.opt:disabled{cursor:default}
+@media (prefers-reduced-motion:no-preference){ .opt.wrong{animation:shake .35s} }
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.fb{margin-top:12px; border-radius:14px; padding:10px 12px; min-height:4.6rem; background:var(--info-bg); border:2px solid var(--line)}
+.fb.good{background:var(--good-bg); border-color:var(--good)}
+.fb.bad{background:var(--bad-bg); border-color:var(--bad)}
+.fb strong{display:block; font-size:1.08rem}
+.fb span{display:block; color:var(--muted); font-size:.98rem}
+.fb.bad span{color:var(--card-ink)}
+
+/* ---------- overlays ---------- */
+.overlay{
+  position:fixed; inset:0; z-index:20; display:flex; align-items:flex-start; justify-content:center; overflow:auto;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px);
+  background:rgba(12,32,20,.78);
+}
+.overlay[hidden]{display:none}
+.sheet{width:100%; max-width:660px; margin:auto; padding:18px 18px 20px}
+.sheet h1,.sheet h2{font-family:'Mali','Sarabun',sans-serif; margin:0 0 4px; line-height:1.25}
+.sheet h1{font-size:2rem}
+.sheet h2{font-size:1.6rem}
+.sheet p{margin:6px 0}
+.howto{list-style:none; padding:0; margin:12px 0}
+.howto li{display:flex; gap:10px; align-items:flex-start; padding:4px 0}
+.howto .emoji{font-size:1.4rem; line-height:1.4}
+details{border:2px solid var(--line); border-radius:14px; padding:8px 12px; margin:10px 0; background:var(--info-bg)}
+summary{cursor:pointer; font-weight:700}
+summary:focus-visible{outline:3px solid var(--sun); outline-offset:3px}
+dl{margin:8px 0 2px}
+dt{font-weight:700; margin-top:8px}
+dd{margin:0; color:var(--muted)}
+.btn{
+  display:block; width:100%; margin-top:14px; padding:12px 16px; font-size:1.25rem; font-weight:700; cursor:pointer;
+  background:var(--leaf); color:#fff; border:3px solid var(--line); border-radius:16px; box-shadow:0 4px 0 var(--shadow);
+}
+.btn:active{transform:translateY(4px); box-shadow:0 0 0 var(--shadow)}
+.btn:focus-visible{outline:4px solid var(--sun); outline-offset:3px}
+.btn.alt{background:var(--card); color:var(--card-ink)}
+.score-big{text-align:center; margin:8px 0}
+.score-big b{display:block; font-family:'Mali','Sarabun',sans-serif; font-size:3.4rem; line-height:1.1; color:var(--leaf-d)}
+:root[data-theme="dark"] .score-big b{color:#8fe0a8}
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin:10px 0}
+.stat{background:var(--chip); border-radius:12px; padding:6px 4px; text-align:center; line-height:1.2}
+.stat span{display:block; font-size:.78rem; color:var(--muted)}
+.stat b{font-size:1.4rem}
+.crops{display:flex; flex-wrap:wrap; gap:6px 12px; justify-content:center; margin:8px 0; font-size:1.2rem}
+.crops .emoji{font-size:1.5rem}
+.cheer{text-align:center; font-weight:700; margin:8px 0 4px}
+.tabs{display:flex; gap:8px; margin:12px 0 4px}
+.tab{flex:1; padding:6px 8px; font-weight:700; border:2px solid var(--line); border-radius:12px; background:var(--card); color:var(--card-ink); cursor:pointer}
+.tab[aria-pressed="true"]{background:var(--leaf); color:#fff}
+.tab:focus-visible{outline:3px solid var(--sun); outline-offset:2px}
+.rv{border:2px solid var(--line); border-left-width:8px; border-radius:14px; padding:8px 12px; margin:8px 0}
+.rv.ok{border-left-color:var(--good)} .rv.retry{border-left-color:var(--sun)} .rv.pending{border-left-color:var(--muted)}
+.rv .st{font-size:.85rem; color:var(--muted); font-weight:600}
+.rv .q{font-weight:700}
+.rv .a b{color:var(--good)}
+:root[data-theme="dark"] .rv .a b{color:#6ee79a}
+.rv .e{color:var(--muted); font-size:.98rem}
+</style>
+</head>
+<body>
+
+<main class="app" aria-label="เกมฟาร์มคำนามสุดสนุก">
+  <section class="card hud" aria-label="เวลาและคะแนน">
+    <div class="hud-top">
+      <div class="brand"><span class="emoji">🌾</span> ฟาร์มคำนาม<small>ตอบถูก = ได้ผลผลิต</small></div>
+      <div class="timer" id="timer" role="timer" aria-label="เวลาที่เหลือ"><span class="emoji">⏱</span><span id="tt">10:00</span></div>
+    </div>
+    <div class="bar" id="bar" aria-hidden="true"><i id="barfill"></i></div>
+    <div class="chips">
+      <div class="chip"><span>คะแนน</span><b id="cScore">0</b></div>
+      <div class="chip"><span>ผลผลิต</span><b id="cHarv">0</b></div>
+      <div class="chip"><span>ตอบถูก</span><b id="cRight">0</b></div>
+      <div class="chip"><span>ตอบผิด</span><b id="cWrong">0</b></div>
+    </div>
+  </section>
+
+  <section class="card scene" aria-label="แปลงผัก">
+    <svg class="bg" viewBox="0 0 800 480" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#63c0f0"/><stop offset="1" stop-color="#dff5ff"/></linearGradient>
+        <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#86d65e"/><stop offset="1" stop-color="#46a24a"/></linearGradient>
+      </defs>
+      <rect width="800" height="480" fill="url(#sky)"/>
+      <circle cx="230" cy="80" r="56" fill="#ffd33d" opacity=".35"/>
+      <circle cx="230" cy="80" r="38" fill="#ffd33d"/>
+      <g fill="#fff"><ellipse cx="470" cy="70" rx="48" ry="16"/><ellipse cx="500" cy="58" rx="30" ry="16"/><ellipse cx="610" cy="120" rx="42" ry="13"/><ellipse cx="636" cy="108" rx="24" ry="13"/></g>
+      <ellipse cx="150" cy="262" rx="270" ry="74" fill="#9be07f"/>
+      <ellipse cx="640" cy="272" rx="300" ry="82" fill="#72c96c"/>
+      <!-- barn -->
+      <rect x="330" y="172" width="140" height="98" fill="#d9453f" stroke="#8e2723" stroke-width="4"/>
+      <polygon points="318,178 400,112 482,178" fill="#a8302b" stroke="#8e2723" stroke-width="4" stroke-linejoin="round"/>
+      <rect x="372" y="208" width="56" height="62" fill="#fff3e0" stroke="#8e2723" stroke-width="4"/>
+      <path d="M372 208 L428 270 M428 208 L372 270" stroke="#8e2723" stroke-width="4"/>
+      <circle cx="400" cy="160" r="9" fill="#fff3e0" stroke="#8e2723" stroke-width="3"/>
+      <!-- trees -->
+      <rect x="143" y="196" width="16" height="64" fill="#8a5a33"/>
+      <circle cx="151" cy="172" r="46" fill="#3f9a4a"/><circle cx="125" cy="190" r="26" fill="#3f9a4a"/><circle cx="180" cy="190" r="26" fill="#3f9a4a"/>
+      <g fill="#e53935"><circle cx="135" cy="160" r="6"/><circle cx="168" cy="176" r="6"/><circle cx="150" cy="195" r="6"/></g>
+      <rect x="633" y="200" width="14" height="60" fill="#8a5a33"/>
+      <circle cx="640" cy="178" r="40" fill="#2f8a43"/><circle cx="618" cy="194" r="22" fill="#2f8a43"/><circle cx="662" cy="194" r="22" fill="#2f8a43"/>
+      <g fill="#ffb300"><circle cx="628" cy="170" r="6"/><circle cx="655" cy="186" r="6"/></g>
+      <!-- field -->
+      <rect y="250" width="800" height="230" fill="url(#grass)"/>
+      <g fill="#c98b52" stroke="#8a5a33" stroke-width="2">
+        <rect x="20" y="262" width="10" height="34"/><rect x="90" y="262" width="10" height="34"/><rect x="160" y="262" width="10" height="34"/>
+        <rect x="560" y="262" width="10" height="34"/><rect x="630" y="262" width="10" height="34"/><rect x="700" y="262" width="10" height="34"/><rect x="770" y="262" width="10" height="34"/>
+        <rect x="10" y="272" width="170" height="7"/><rect x="550" y="272" width="240" height="7"/>
+      </g>
+    </svg>
+    <div class="basket" id="basket"><span class="ico emoji" id="basketIco">🧺</span><span id="basketN">0</span></div>
+    <div class="field" id="field"></div>
+  </section>
+
+  <section class="card quiz" aria-label="คำถาม">
+    <div class="qhead"><span class="qno" id="qno">ข้อที่ 1</span><span class="qtag"><span class="emoji">👩‍🌾</span> ภารกิจคำนาม</span></div>
+    <div class="qtext" id="qtext">กำลังเตรียมแปลง...</div>
+    <div class="opts" id="opts" role="group" aria-label="ตัวเลือกคำตอบ"></div>
+    <div class="fb" id="fb" aria-live="polite"><strong>เลือกคำตอบเพื่อรดน้ำต้นกล้า</strong><span>กดปุ่มคำตอบ หรือกดเลข 1–4 บนคีย์บอร์ดก็ได้</span></div>
+  </section>
+</main>
+
+<!-- start -->
+<div class="overlay" id="startOv">
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+    <h1 id="startTitle"><span class="emoji">🌾</span> ฟาร์มคำนามสุดสนุก</h1>
+    <p>ทบทวนคำนาม 5 ประเภท ผ่านการทำฟาร์ม เล่นได้ 10 นาที</p>
+    <ul class="howto">
+      <li><span class="emoji">🌱</span><span>อ่านคำถาม แล้วเลือกคำตอบที่ถูกต้อง 1 ข้อ</span></li>
+      <li><span class="emoji">💧</span><span>ตอบถูกได้ 1 คะแนน และเก็บผลผลิต 1 ชิ้นใส่ตะกร้า</span></li>
+      <li><span class="emoji">💡</span><span>ตอบผิดไม่เป็นไร มีคำใบ้ให้ แล้วลองใหม่ได้เลย</span></li>
+      <li><span class="emoji">⏱</span><span>ตอบให้ได้มากที่สุดก่อนเวลาหมด แล้วดูเฉลยตอนจบ</span></li>
+    </ul>
+    <details>
+      <summary>ทบทวนก่อนเล่น: คำนาม 5 ประเภท</summary>
+      <dl>
+        <dt>สามานยนาม</dt><dd>ชื่อเรียกทั่วไป เช่น ครู แมว โต๊ะ แม่น้ำ</dd>
+        <dt>วิสามานยนาม</dt><dd>ชื่อเฉพาะ เช่น สมชาย เชียงใหม่ แม่น้ำโขง</dd>
+        <dt>สมุหนาม</dt><dd>ชื่อกลุ่มหรือหมู่ เช่น ฝูง โขลง คณะ</dd>
+        <dt>ลักษณนาม</dt><dd>คำที่ตามหลังจำนวนนับเพื่อบอกลักษณะ เช่น ตัว คัน หลัง</dd>
+        <dt>อาการนาม</dt><dd>“การ” หรือ “ความ” + กริยา/วิเศษณ์ เช่น การอ่าน ความสุข</dd>
+      </dl>
+    </details>
+    <button class="btn" id="startBtn" type="button">เริ่มปลูกเลย!</button>
+  </div>
+</div>
+
+<!-- summary -->
+<div class="overlay" id="endOv" hidden>
+  <div class="card sheet" role="dialog" aria-modal="true" aria-labelledby="endTitle">
+    <h2 id="endTitle"><span class="emoji">🎉</span> หมดเวลาแล้ว!</h2>
+    <div class="score-big"><span>คะแนนรวม</span><b id="sScore">0</b></div>
+    <div class="stats">
+      <div class="stat"><span>ผลผลิต</span><b id="sHarv">0</b></div>
+      <div class="stat"><span>ตอบถูก</span><b id="sRight">0</b></div>
+      <div class="stat"><span>ตอบผิด</span><b id="sWrong">0</b></div>
+      <div class="stat"><span>แม่นยำ</span><b id="sAcc">0%</b></div>
+    </div>
+    <div class="crops" id="sCrops"></div>
+    <p class="cheer" id="sCheer"></p>
+    <h2 style="font-size:1.3rem;margin-top:14px">เฉลยคำตอบ</h2>
+    <div class="tabs">
+      <button class="tab" id="tabAll" type="button" aria-pressed="true">ทุกข้อ</button>
+      <button class="tab" id="tabMiss" type="button" aria-pressed="false">ข้อที่ควรทบทวน</button>
+    </div>
+    <div id="review"></div>
+    <button class="btn" id="againBtn" type="button">เล่นอีกครั้ง</button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ================= question bank ================= */
+var T=['สามานยนาม','วิสามานยนาม','สมุหนาม','ลักษณนาม','อาการนาม'];
+var TH=[
+  'นึกถึงชื่อเรียกทั่วไป ที่ไม่ได้บอกว่าเป็นของใครหรือที่ไหนโดยเฉพาะ',
+  'นึกถึงชื่อเฉพาะที่ใช้เรียกคน สัตว์ สถานที่ หรือสิ่งใดสิ่งหนึ่งโดยเฉพาะ',
+  'นึกถึงคำที่ใช้เรียกสิ่งหลายๆ อย่างที่อยู่รวมกันเป็นกลุ่ม',
+  'ดูว่าคำนี้ตามหลังตัวเลขเพื่อบอกลักษณะของสิ่งที่นับหรือไม่',
+  'ดูว่าขึ้นต้นด้วย “การ” หรือ “ความ” แล้วตามด้วยกริยาหรือคุณลักษณะหรือไม่'
+];
+var Q=[];
+function C(q,t,exp){Q.push({k:'c',q:q,t:t,a:T[t],exp:exp,hint:TH[t]});}
+function M(q,a,d,hint,exp){Q.push({k:'m',q:q,a:a,d:d,hint:hint,exp:exp});}
+function F(noun,num,a,d){
+  Q.push({k:'m',q:'เติมลักษณนามให้ถูกต้อง: “'+noun+' '+num+' ___”',a:a,d:d,
+    hint:'นึกถึงคำที่เรามักพูดตามหลังตัวเลขเวลานับสิ่งนี้',
+    exp:'ลักษณนามของ “'+noun+'” คือ “'+a+'” เช่น '+noun+' '+num+' '+a});
+}
+
+/* จำแนกชนิดของคำนาม */
+C('คำว่า “ครู” เป็นคำนามชนิดใด?',0,'“ครู” เป็นสามานยนาม เพราะเป็นชื่อเรียกคนอาชีพนี้โดยทั่วไป ไม่ได้เจาะจงว่าเป็นครูคนไหน');
+C('คำว่า “แมว” เป็นคำนามชนิดใด?',0,'“แมว” เป็นสามานยนาม เพราะเป็นชื่อเรียกสัตว์ชนิดนี้ทั่วไป ไม่เจาะจงว่าเป็นตัวไหน');
+C('คำว่า “โต๊ะ” เป็นคำนามชนิดใด?',0,'“โต๊ะ” เป็นสามานยนาม เพราะเป็นชื่อเรียกสิ่งของทั่วไป');
+C('คำว่า “แม่น้ำ” เป็นคำนามชนิดใด?',0,'“แม่น้ำ” เป็นสามานยนาม เพราะเรียกแม่น้ำทั่วไป ยังไม่ได้บอกว่าสายไหน');
+C('คำว่า “สมชาย” เป็นคำนามชนิดใด?',1,'“สมชาย” เป็นวิสามานยนาม เพราะเป็นชื่อเฉพาะของคนคนหนึ่ง');
+C('คำว่า “ภูเก็ต” เป็นคำนามชนิดใด?',1,'“ภูเก็ต” เป็นวิสามานยนาม เพราะเป็นชื่อเฉพาะของจังหวัดหนึ่ง');
+C('คำว่า “แม่น้ำเจ้าพระยา” เป็นคำนามชนิดใด?',1,'“แม่น้ำเจ้าพระยา” เป็นวิสามานยนาม เพราะบอกชื่อเฉพาะของแม่น้ำสายหนึ่ง (ต่างจาก “แม่น้ำ” ที่เป็นสามานยนาม)');
+C('คำว่า “ประเทศไทย” เป็นคำนามชนิดใด?',1,'“ประเทศไทย” เป็นวิสามานยนาม เพราะเป็นชื่อเฉพาะของประเทศหนึ่ง');
+C('คำว่า “ฝูง” ในวลี “ฝูงนก” เป็นคำนามชนิดใด?',2,'“ฝูง” เป็นสมุหนาม เพราะใช้เรียกนกที่อยู่รวมกันเป็นกลุ่ม');
+C('คำว่า “โขลง” ในวลี “โขลงช้าง” เป็นคำนามชนิดใด?',2,'“โขลง” เป็นสมุหนาม เพราะใช้เรียกช้างที่อยู่รวมกันเป็นกลุ่ม');
+C('คำว่า “คณะ” ในวลี “คณะครู” เป็นคำนามชนิดใด?',2,'“คณะ” เป็นสมุหนาม เพราะใช้เรียกครูที่รวมกันเป็นหมู่คณะ');
+C('คำว่า “ตัว” ในวลี “แมว 3 ตัว” เป็นคำนามชนิดใด?',3,'“ตัว” เป็นลักษณนาม เพราะตามหลังจำนวนนับ เพื่อบอกลักษณะของ “แมว”');
+C('คำว่า “คัน” ในวลี “รถ 2 คัน” เป็นคำนามชนิดใด?',3,'“คัน” เป็นลักษณนาม เพราะตามหลังจำนวนนับ เพื่อบอกลักษณะของ “รถ”');
+C('คำว่า “หลัง” ในวลี “บ้าน 1 หลัง” เป็นคำนามชนิดใด?',3,'“หลัง” เป็นลักษณนาม เพราะตามหลังจำนวนนับ เพื่อบอกลักษณะของ “บ้าน”');
+C('คำว่า “ด้าม” ในวลี “ปากกา 2 ด้าม” เป็นคำนามชนิดใด?',3,'“ด้าม” เป็นลักษณนาม เพราะตามหลังจำนวนนับ เพื่อบอกลักษณะของ “ปากกา”');
+C('คำว่า “ความสุข” เป็นคำนามชนิดใด?',4,'“ความสุข” เป็นอาการนาม เพราะเกิดจาก “ความ” + “สุข”');
+C('คำว่า “การเดินทาง” เป็นคำนามชนิดใด?',4,'“การเดินทาง” เป็นอาการนาม เพราะเกิดจาก “การ” + กริยา “เดินทาง”');
+C('คำว่า “การอ่าน” เป็นคำนามชนิดใด?',4,'“การอ่าน” เป็นอาการนาม เพราะเกิดจาก “การ” + กริยา “อ่าน”');
+C('คำว่า “ความกล้าหาญ” เป็นคำนามชนิดใด?',4,'“ความกล้าหาญ” เป็นอาการนาม เพราะเกิดจาก “ความ” + “กล้าหาญ”');
+
+/* ความหมายของคำนามแต่ละชนิด */
+M('ข้อใดอธิบาย “สามานยนาม” ได้ถูกต้อง?','คำนามที่ใช้เรียกชื่อทั่วไป ไม่เจาะจง',
+  ['คำนามที่เป็นชื่อเฉพาะของคน สัตว์ หรือสถานที่','คำนามที่ตามหลังจำนวนนับเพื่อบอกลักษณะ','คำนามที่ใช้เรียกสิ่งที่รวมกันเป็นกลุ่ม'],
+  'สามานยนาม มาจากคำว่า “สามัญ” ที่แปลว่าทั่วไป','สามานยนามคือชื่อเรียกทั่วไป ไม่เจาะจง เช่น ครู แมว โต๊ะ');
+M('ข้อใดอธิบาย “วิสามานยนาม” ได้ถูกต้อง?','คำนามที่เป็นชื่อเฉพาะของคน สัตว์ สิ่งของ หรือสถานที่',
+  ['ชื่อเรียกทั่วไปของคนและสิ่งของ','คำนามที่ตามหลังจำนวนนับเพื่อบอกลักษณะ','คำนามที่เกิดจากคำ “การ” หรือ “ความ”'],
+  'วิสามานยนามบอกชื่อที่เจาะจงว่าเป็นอะไรหรือใครโดยเฉพาะ','วิสามานยนามคือชื่อเฉพาะ เช่น สมชาย เชียงใหม่ แม่น้ำโขง');
+M('ข้อใดอธิบาย “สมุหนาม” ได้ถูกต้อง?','คำนามที่บอกว่าเป็นกลุ่มหรือหมู่',
+  ['ชื่อเฉพาะของคนและสถานที่','คำที่ตามหลังจำนวนนับเพื่อบอกลักษณะ','คำนามที่เกิดจากคำกริยา'],
+  'ลองนึกถึงคำว่า ฝูง โขลง คณะ','สมุหนามคือคำที่บอกว่าสิ่งนั้นอยู่รวมกันเป็นกลุ่ม เช่น ฝูง โขลง คณะ');
+M('ข้อใดอธิบาย “ลักษณนาม” ได้ถูกต้อง?','คำนามที่ตามหลังจำนวนนับเพื่อบอกลักษณะของนาม',
+  ['ชื่อเรียกทั่วไปของคนและสิ่งของ','คำนามที่บอกว่าเป็นกลุ่มหรือหมู่','คำนามที่เป็นชื่อเฉพาะ'],
+  'ลองนึกถึง “แมว 2 ตัว” หรือ “รถ 3 คัน”','ลักษณนามคือคำที่ตามหลังจำนวนนับเพื่อบอกลักษณะ เช่น ตัว คัน หลัง');
+M('ข้อใดอธิบาย “อาการนาม” ได้ถูกต้อง?','คำนามที่ใช้ “การ” หรือ “ความ” นำหน้ากริยาหรือวิเศษณ์',
+  ['คำนามที่ใช้เรียกสิ่งที่รวมกันเป็นกลุ่ม','ชื่อเฉพาะของคน สัตว์ หรือสถานที่','คำนามที่ตามหลังจำนวนนับเพื่อบอกลักษณะ'],
+  'ลองนึกถึงคำว่า การอ่าน และ ความสุข','อาการนามคือคำนามที่เกิดจาก “การ” หรือ “ความ” + กริยา/วิเศษณ์ เช่น การอ่าน ความสุข');
+M('คำว่า “การ” และ “ความ” นำหน้าคำชนิดใดเพื่อสร้างอาการนาม?','คำกริยาหรือคำวิเศษณ์',
+  ['คำสันธาน','คำบุพบท','ชื่อเฉพาะของสถานที่'],
+  'ลองดู “การอ่าน” (อ่าน = ?) และ “ความดี” (ดี = ?)','“การ” มักนำหน้ากริยา เช่น การอ่าน ส่วน “ความ” มักนำหน้ากริยาหรือวิเศษณ์ เช่น ความสุข');
+
+/* เลือกตามชนิดของคำนาม */
+M('ข้อใดเป็นวิสามานยนาม?','เชียงใหม่',['จังหวัด','ภูเขา','นักเรียน'],
+  'มองหาคำที่เป็นชื่อเฉพาะของสถานที่','“เชียงใหม่” เป็นชื่อเฉพาะ ส่วน “จังหวัด” “ภูเขา” “นักเรียน” เป็นสามานยนาม');
+M('ข้อใดเป็นวิสามานยนาม?','แม่น้ำโขง',['แม่น้ำ','คลอง','ทะเล'],
+  'ดูว่าคำไหนบอกชื่อเฉพาะของแหล่งน้ำสายหนึ่ง','“แม่น้ำโขง” เป็นชื่อเฉพาะ ส่วน “แม่น้ำ” “คลอง” “ทะเล” เป็นสามานยนาม');
+M('ข้อใดเป็นวิสามานยนาม?','สมชาย',['เด็กชาย','ผู้ชาย','พี่ชาย'],
+  'ชื่อเฉพาะของคน จะเจาะจงว่าเป็นใครคนใดคนหนึ่ง','“สมชาย” เป็นชื่อเฉพาะของคน ส่วนที่เหลือเป็นสามานยนามที่ใช้เรียกทั่วไป');
+M('ข้อใดเป็นสามานยนามทั้งหมด?','ครู โต๊ะ ปากกา',
+  ['ครู กรุงเทพ ปากกา','สมชาย โต๊ะ ปากกา','ครู โต๊ะ ฝูง'],
+  'หาข้อที่ไม่มีชื่อเฉพาะ และไม่มีคำบอกกลุ่ม','“ครู โต๊ะ ปากกา” เป็นสามานยนามทั้งหมด ส่วนข้ออื่นมี “กรุงเทพ” (วิสามานยนาม) “สมชาย” (วิสามานยนาม) หรือ “ฝูง” (สมุหนาม) ปนอยู่');
+M('ข้อใดเป็นสมุหนาม?','โขลง',['ช้าง','ตัว','ความดี'],
+  'มองหาคำที่ใช้เรียกสิ่งที่อยู่รวมกันเป็นกลุ่ม','“โขลง” เป็นสมุหนาม ส่วน “ช้าง” เป็นสามานยนาม “ตัว” เป็นลักษณนาม “ความดี” เป็นอาการนาม');
+M('ข้อใดเป็นสมุหนามทั้งหมด?','ฝูง โขลง คณะ',
+  ['ฝูง ตัว คณะ','ฝูง โขลง ความดี','ฝูง โขลง เชียงใหม่'],
+  'ตรวจทีละคำว่าทุกคำบอกกลุ่มหรือหมู่หรือไม่','“ฝูง โขลง คณะ” เป็นสมุหนามทั้งหมด ส่วนข้ออื่นมี “ตัว” (ลักษณนาม) “ความดี” (อาการนาม) หรือ “เชียงใหม่” (วิสามานยนาม) ปนอยู่');
+M('ข้อใดเป็นลักษณนาม?','คัน',['รถ','การขับขี่','ฝูง'],
+  'มองหาคำที่ตามหลังตัวเลข เช่น รถ 2 ___','“คัน” เป็นลักษณนามของ “รถ” ส่วน “รถ” เป็นสามานยนาม “การขับขี่” เป็นอาการนาม “ฝูง” เป็นสมุหนาม');
+M('ข้อใดเป็นอาการนาม?','ความสุข',['ตลาด','สมชาย','ตัว'],
+  'มองหาคำที่ขึ้นต้นด้วย “ความ” หรือ “การ”','“ความสุข” เป็นอาการนาม ส่วน “ตลาด” เป็นสามานยนาม “สมชาย” เป็นวิสามานยนาม “ตัว” เป็นลักษณนาม');
+M('ข้อใดเป็นอาการนาม?','การเรียน',['เรียน','โรงเรียน','นักเรียน'],
+  '“เรียน” เป็นคำกริยา ลองหาคำที่มี “การ” นำหน้ากริยา','“การ” + “เรียน” = “การเรียน” เป็นอาการนาม ส่วน “เรียน” เป็นกริยา “โรงเรียน” “นักเรียน” เป็นสามานยนาม');
+M('ข้อใดเป็นอาการนาม?','ความดี',['ดี','คนดี','ดีใจ'],
+  '“ดี” เป็นคำวิเศษณ์ ลองหาคำที่มี “ความ” นำหน้า','“ความ” + “ดี” = “ความดี” เป็นอาการนาม ส่วน “ดี” เป็นวิเศษณ์ “คนดี” เป็นสามานยนาม');
+M('ข้อใดเรียงคู่ (สามานยนาม – วิสามานยนาม) ได้ถูกต้อง?','จังหวัด – ขอนแก่น',
+  ['ขอนแก่น – จังหวัด','ฝูง – ขอนแก่น','ตัว – จังหวัด'],
+   'คำแรกต้องเป็นชื่อทั่วไป คำหลังต้องเป็นชื่อเฉพาะ','“จังหวัด” เป็นสามานยนาม (ทั่วไป) ส่วน “ขอนแก่น” เป็นวิสามานยนาม (ชื่อเฉพาะ)');
+
+/* หาชนิดของคำนามในประโยค */
+M('ในประโยค “ฝูงนกบินอยู่บนท้องฟ้า” คำใดเป็นสมุหนาม?','ฝูง',['นก','ท้องฟ้า','บิน'],
+  'หาคำที่บอกว่านกอยู่รวมกันเป็นกลุ่ม','“ฝูง” เป็นสมุหนาม ส่วน “นก” “ท้องฟ้า” เป็นสามานยนาม “บิน” เป็นกริยา');
+M('ในประโยค “สมชายซื้อปากกา 2 ด้ามที่ตลาด” คำใดเป็นลักษณนาม?','ด้าม',['สมชาย','ปากกา','ตลาด'],
+  'หาคำที่ตามหลังตัวเลข 2','“ด้าม” เป็นลักษณนามของ “ปากกา” ส่วน “สมชาย” เป็นวิสามานยนาม “ปากกา” “ตลาด” เป็นสามานยนาม');
+M('ในประโยค “น้องชอบการอ่านหนังสือ” คำใดเป็นอาการนาม?','การอ่าน',['น้อง','หนังสือ','ชอบ'],
+  'หาคำที่มี “การ” นำหน้ากริยา','“การอ่าน” เป็นอาการนาม ส่วน “น้อง” “หนังสือ” เป็นสามานยนาม “ชอบ” เป็นกริยา');
+M('ในประโยค “คุณครูพานักเรียนไปเที่ยวเชียงใหม่” คำใดเป็นวิสามานยนาม?','เชียงใหม่',['คุณครู','นักเรียน','พา'],
+  'หาคำที่เป็นชื่อเฉพาะของสถานที่','“เชียงใหม่” เป็นวิสามานยนาม ส่วน “คุณครู” “นักเรียน” เป็นสามานยนาม “พา” เป็นกริยา');
+M('ประโยคใดมีสมุหนามอยู่ด้วย?','ฝูงวัวเดินข้ามถนน',
+  ['วัวสามตัวเดินข้ามถนน','วัวชื่อทองดีเดินข้ามถนน','ความหิวทำให้วัวเดินหาอาหาร'],
+  'มองหาคำที่บอกว่าวัวอยู่รวมกันเป็นกลุ่ม','“ฝูง” ในประโยคแรกเป็นสมุหนาม ส่วนข้ออื่นมีลักษณนาม วิสามานยนาม หรืออาการนาม');
+M('ประโยคใดมีลักษณนามอยู่ด้วย?','น้องมีดินสอ 3 แท่ง',
+  ['น้องชอบการวาดรูป','ฝูงนกบินกลับรัง','สมศรีไปเชียงใหม่'],
+  'มองหาคำที่ตามหลังตัวเลข','“แท่ง” ตามหลังจำนวนนับ “3” จึงเป็นลักษณนามของ “ดินสอ”');
+M('ประโยคใดมีอาการนามอยู่ด้วย?','ฉันภูมิใจในความซื่อสัตย์ของเธอ',
+  ['ฝูงนกบินกลับรัง','ฉันซื้อปากกา 2 ด้าม','สมศรีไปตลาด'],
+  'มองหาคำที่ขึ้นต้นด้วย “ความ” หรือ “การ”','“ความซื่อสัตย์” เกิดจาก “ความ” + “ซื่อสัตย์” จึงเป็นอาการนาม');
+M('ประโยคใดมีวิสามานยนามอยู่ด้วย?','สมศรีไปเที่ยวภูเก็ต',
+  ['นักเรียนไปโรงเรียน','ฝูงนกบินกลับรัง','ฉันซื้อปากกา 2 ด้าม'],
+  'มองหาชื่อเฉพาะของคนหรือสถานที่','“สมศรี” และ “ภูเก็ต” เป็นชื่อเฉพาะ จึงเป็นวิสามานยนาม');
+
+/* เติมลักษณนาม */
+F('รถยนต์',2,'คัน',['ตัว','ใบ','หลัง']);
+F('บ้าน',3,'หลัง',['คัน','ตัว','เล่ม']);
+F('หนังสือ',4,'เล่ม',['ใบ','ตัว','คัน']);
+F('แมว',2,'ตัว',['คัน','เล่ม','หลัง']);
+F('ปากกา',2,'ด้าม',['ตัว','ใบ','หลัง']);
+F('ไข่ไก่',6,'ฟอง',['ตัว','เล่ม','คัน']);
+F('รองเท้า',1,'คู่',['คัน','เล่ม','ตัว']);
+F('มะม่วง',3,'ลูก',['คัน','เล่ม','ด้าม']);
+F('ต้นไม้',4,'ต้น',['ตัว','หลัง','เล่ม']);
+F('จาน',3,'ใบ',['คัน','ตัว','หลัง']);
+F('เสื้อ',2,'ตัว',['คัน','ใบ','เล่ม']);
+F('ร่ม',1,'คัน',['ตัว','ใบ','เล่ม']);
+F('นักเรียน',30,'คน',['ตัว','คัน','เล่ม']);
+
+/* ================= constants ================= */
+var GAME_SECONDS=600;
+var CROPS=[
+  {e:'🥭',n:'มะม่วง'},{e:'🍍',n:'สับปะรด'},{e:'🍌',n:'กล้วย'},{e:'🌽',n:'ข้าวโพด'},
+  {e:'🍉',n:'แตงโม'},{e:'🍅',n:'มะเขือเทศ'},{e:'🥕',n:'แครอท'},{e:'🥥',n:'มะพร้าว'}
+];
+var LETTERS=['ก','ข','ค','ง'];
+var GOOD=['เก่งมาก! ได้ผลผลิตเพิ่มแล้ว','ถูกต้อง! ฟาร์มของเรากำลังเติบโต','สุดยอด! เก็บเกี่ยวได้อีก 1 ชิ้น','ใช่เลย! เก็บเกี่ยวต่อกันเลย','เยี่ยมไปเลย! ตะกร้าหนักขึ้นอีกนิด'];
+var BAD=['ลองอีกครั้งนะ มาเรียนรู้ไปด้วยกัน','ยังไม่ใช่ ไม่เป็นไร ลองอีกครั้ง!','เกือบแล้ว! อ่านคำใบ้แล้วลองอีกที'];
+var N_PLOTS=6;
+
+/* ================= helpers ================= */
+function $(id){return document.getElementById(id);}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function reduced(){return window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;}
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function fmt(s){var m=Math.floor(s/60),r=s%60;return (m<10?'0':'')+m+':'+(r<10?'0':'')+r;}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function buildOptions(q){
+  var opts=[];
+  if(q.k==='c'){
+    var others=shuffle([0,1,2,3,4].filter(function(i){return i!==q.t;})).slice(0,3);
+    opts.push({text:T[q.t],ok:true});
+    others.forEach(function(i){opts.push({text:T[i],ok:false});});
+  }else{
+    opts.push({text:q.a,ok:true});
+    q.d.forEach(function(d){opts.push({text:d,ok:false});});
+  }
+  return shuffle(opts);
+}
+
+/* ================= state ================= */
+var S=null;
+var plotEls=[];
+var tickId=null;
+
+function newState(){
+  return {
+    gen:(S?S.gen:0)+1, left:GAME_SECONDS, deadline:0,
+    score:0, harvest:0, right:0, wrong:0, crops:{},
+    queue:[], lastQ:-1, qn:0, cur:null, locked:true, over:false, log:[], plot:0,
+    plotCrop:[]
+  };
+}
+
+/* ================= field ================= */
+function buildField(){
+  var f=$('field'); f.innerHTML=''; plotEls=[];
+  for(var i=0;i<N_PLOTS;i++){
+    var p=document.createElement('div'); p.className='plot';
+    var pl=document.createElement('span'); pl.className='plant emoji'; pl.textContent='🌱';
+    var so=document.createElement('div'); so.className='soil';
+    p.appendChild(pl); p.appendChild(so); f.appendChild(p); plotEls.push(p);
+    S.plotCrop[i]=pick(CROPS);
+  }
+}
+function setActivePlot(i){
+  plotEls.forEach(function(p,k){p.classList.toggle('active',k===i);});
+}
+
+/* ================= HUD ================= */
+function updateHud(){
+  $('cScore').textContent=S.score; $('cHarv').textContent=S.harvest;
+  $('cRight').textContent=S.right; $('cWrong').textContent=S.wrong;
+  $('basketN').textContent=S.harvest;
+}
+function updateTimer(){
+  $('tt').textContent=fmt(S.left);
+  $('barfill').style.width=(S.left/GAME_SECONDS*100)+'%';
+  var low=S.left<=60;
+  $('timer').classList.toggle('low',low);
+  $('bar').classList.toggle('low',low);
+}
+
+/* ================= questions ================= */
+function nextQuestion(){
+  if(S.over) return;
+  if(!S.queue.length){
+    S.queue=shuffle(Q.map(function(_,i){return i;}));
+    if(S.queue[0]===S.lastQ&&S.queue.length>1){S.queue.push(S.queue.shift());}
+  }
+  var idx=S.queue.shift(); S.lastQ=idx;
+  var q=Q[idx];
+  S.qn++;
+  var entry={q:q.q,ans:(q.k==='c'?q.a:q.a),exp:q.exp,mistakes:0,done:false};
+  S.log.push(entry);
+  S.cur={q:q,opts:buildOptions(q),entry:entry,tried:{}};
+  S.locked=false;
+  renderQuestion();
+}
+function renderQuestion(){
+  var c=S.cur;
+  $('qno').textContent='ข้อที่ '+S.qn;
+  $('qtext').textContent=c.q.q;
+  var wrap=$('opts'); wrap.innerHTML='';
+  var long=c.opts.some(function(o){return o.text.length>14;});
+  wrap.className='opts'+(long?' long':'');
+  c.opts.forEach(function(o,i){
+    var b=document.createElement('button');
+    b.type='button'; b.className='opt'; b.dataset.i=i;
+    b.innerHTML='<span class="ltr">'+LETTERS[i]+'</span><span>'+esc(o.text)+'</span>';
+    wrap.appendChild(b);
+  });
+  setFb('info','เลือกคำตอบเพื่อรดน้ำต้นกล้า','กดปุ่มคำตอบ หรือกดเลข 1–4 บนคีย์บอร์ดก็ได้');
+  setActivePlot(S.plot);
+  var pl=plotEls[S.plot].querySelector('.plant'); pl.textContent='🌱';
+}
+function setFb(kind,title,sub){
+  var fb=$('fb'); fb.className='fb'+(kind==='good'?' good':kind==='bad'?' bad':'');
+  fb.innerHTML='<strong>'+esc(title)+'</strong>'+(sub?'<span>'+esc(sub)+'</span>':'');
+}
+
+function answer(i){
+  if(!S||S.over||S.locked||!S.cur) return;
+  var c=S.cur; var o=c.opts[i]; if(!o||c.tried[i]) return;
+  var btn=$('opts').children[i];
+  if(o.ok){
+    S.locked=true; c.entry.done=true;
+    btn.classList.add('right');
+    Array.prototype.forEach.call($('opts').children,function(b){b.disabled=true;});
+    S.score++; S.harvest++; S.right++;
+    var crop=S.plotCrop[S.plot];
+    S.crops[crop.e]=(S.crops[crop.e]||0)+1;
+    updateHud();
+    var exp=c.entry.exp;
+    setFb('good',pick(GOOD)+' '+crop.e,exp);
+    harvestSequence(crop);
+  }else{
+    c.tried[i]=true; c.entry.mistakes++; S.wrong++;
+    btn.classList.add('wrong'); btn.disabled=true;
+    updateHud();
+    setFb('bad',pick(BAD),'💡 คำใบ้: '+c.q.hint);
+  }
+}
+
+/* ================= animations ================= */
+async function harvestSequence(crop){
+  var g=S.gen, idx=S.plot, plot=plotEls[idx], plant=plot.querySelector('.plant');
+  var rm=reduced();
+  // water
+  if(!rm){
+    var drops=[];
+    for(var k=0;k<3;k++){
+      var d=document.createElement('span'); d.className='drop emoji'; d.textContent='💧';
+      d.style.marginLeft=((k-1)*16-8)+'px'; plot.appendChild(d); drops.push(d);
+      d.animate([{transform:'translateY(-6px)',opacity:0},{opacity:1,offset:.25},{transform:'translateY('+Math.max(plot.clientHeight*0.5,24)+'px)',opacity:0}],
+        {duration:620,delay:k*120,easing:'ease-in',fill:'both'});
+    }
+    await sleep(850);
+    drops.forEach(function(d){d.remove();});
+  }else{await sleep(150);}
+  if(S.gen!==g) return;
+  plant.textContent='🌿'; await sleep(rm?100:260);
+  if(S.gen!==g) return;
+  plant.textContent=crop.e;
+  if(!rm) plant.animate([{transform:'scale(.4)'},{transform:'scale(1.3)',offset:.6},{transform:'scale(1)'}],{duration:380,easing:'ease-out'});
+  await sleep(rm?150:420);
+  if(S.gen!==g) return;
+  // fly to basket
+  if(!rm){
+    var from=plant.getBoundingClientRect(), to=$('basketIco').getBoundingClientRect();
+    var fl=document.createElement('span'); fl.className='fly emoji'; fl.textContent=crop.e;
+    fl.style.left=from.left+'px'; fl.style.top=from.top+'px'; fl.style.fontSize=getComputedStyle(plant).fontSize;
+    document.body.appendChild(fl);
+    plant.textContent='';
+    var dx=(to.left+to.width/2)-(from.left+from.width/2), dy=(to.top+to.height/2)-(from.top+from.height/2);
+    var anim=fl.animate([{transform:'translate(0,0) scale(1)'},{transform:'translate('+dx*0.5+'px,'+(dy*0.5-30)+'px) scale(.9)',offset:.5},{transform:'translate('+dx+'px,'+dy+'px) scale(.45)'}],
+      {duration:620,easing:'ease-in-out',fill:'forwards'});
+    try{await anim.finished;}catch(e){}
+    fl.remove();
+    $('basket').animate([{transform:'scale(1)'},{transform:'scale(1.2)'},{transform:'scale(1)'}],{duration:260});
+  }else{plant.textContent='';}
+  if(S.gen!==g) return;
+  plant.textContent='🌱';
+  S.plotCrop[idx]=pick(CROPS);
+  if(S.over) return;
+  S.plot=(idx+1)%N_PLOTS;
+  nextQuestion();
+}
+
+/* ================= game flow ================= */
+function startGame(){
+  S=newState();
+  $('startOv').hidden=true; $('endOv').hidden=true;
+  buildField(); updateHud(); updateTimer();
+  S.deadline=Date.now()+GAME_SECONDS*1000;
+  clearInterval(tickId);
+  tickId=setInterval(tick,250);
+  nextQuestion();
+}
+function tick(){
+  if(!S||S.over) return;
+  var left=Math.max(0,Math.ceil((S.deadline-Date.now())/1000));
+  if(left!==S.left){S.left=left; updateTimer();}
+  if(left<=0) endGame();
+}
+function endGame(){
+  if(S.over) return;
+  S.over=true; S.locked=true; clearInterval(tickId);
+  S.left=0; updateTimer();
+  Array.prototype.forEach.call($('opts').children,function(b){b.disabled=true;});
+  buildSummary();
+  $('endOv').hidden=false;
+  $('endOv').scrollTop=0;
+  var b=$('againBtn'); setTimeout(function(){b.focus({preventScroll:true});},50);
+}
+
+function buildSummary(){
+  var tot=S.right+S.wrong;
+  var acc=tot?Math.round(S.right/tot*100):0;
+  $('sScore').textContent=S.score; $('sHarv').textContent=S.harvest;
+  $('sRight').textContent=S.right; $('sWrong').textContent=S.wrong; $('sAcc').textContent=acc+'%';
+  var cr=''; 
+  CROPS.forEach(function(c){var n=S.crops[c.e]; if(n) cr+='<span><span class="emoji">'+c.e+'</span> '+c.n+' × '+n+'</span>';});
+  $('sCrops').innerHTML=cr||'<span>ยังไม่ได้เก็บผลผลิต ลองเล่นอีกรอบนะ</span>';
+  var msg;
+  if(S.right>=10&&acc>=80) msg='สุดยอดเกษตรกรคำนาม! ฟาร์มของเธออุดมสมบูรณ์มาก';
+  else if(S.right>=5) msg='เก่งมาก! อ่านเฉลยด้านล่างแล้วลองเล่นอีกรอบเพื่อเก็บผลผลิตให้มากขึ้น';
+  else msg='ไม่เป็นไรนะ การลองผิดลองถูกคือการเรียนรู้ อ่านเฉลยแล้วมาปลูกกันใหม่!';
+  $('sCheer').textContent=msg;
+  setTab('all');
+}
+function setTab(which){
+  $('tabAll').setAttribute('aria-pressed',which==='all');
+  $('tabMiss').setAttribute('aria-pressed',which==='miss');
+  var html='';
+  S.log.forEach(function(e,i){
+    var review=e.mistakes>0||!e.done;
+    if(which==='miss'&&!review) return;
+    var cls,st;
+    if(!e.done){cls='pending'; st='⏳ ยังไม่ได้ตอบถูกเมื่อหมดเวลา'+(e.mistakes?' (ผิด '+e.mistakes+' ครั้ง)':'');}
+    else if(e.mistakes>0){cls='retry'; st='🔁 ตอบถูกหลังลองใหม่ (ผิด '+e.mistakes+' ครั้ง)';}
+    else{cls='ok'; st='✅ ตอบถูกตั้งแต่ครั้งแรก';}
+    html+='<div class="rv '+cls+'"><div class="st">ข้อที่ '+(i+1)+' · '+st+'</div><div class="q">'+esc(e.q)+'</div><div class="a">คำตอบ: <b>'+esc(e.ans)+'</b></div><div class="e">'+esc(e.exp)+'</div></div>';
+  });
+  if(!html) html='<p>ไม่มีข้อที่ต้องทบทวน เก่งมาก!</p>';
+  $('review').innerHTML=html;
+}
+
+/* ================= events ================= */
+$('startBtn').addEventListener('click',startGame);
+$('againBtn').addEventListener('click',startGame);
+$('tabAll').addEventListener('click',function(){setTab('all');});
+$('tabMiss').addEventListener('click',function(){setTab('miss');});
+$('opts').addEventListener('click',function(ev){
+  var b=ev.target.closest('.opt'); if(!b) return;
+  answer(parseInt(b.dataset.i,10));
+});
+document.addEventListener('keydown',function(ev){
+  if(!S||S.over||$('startOv').hidden===false) return;
+  if(ev.ctrlKey||ev.metaKey||ev.altKey) return;
+  var n=parseInt(ev.key,10);
+  if(n>=1&&n<=4) answer(n-1);
+});
+
+/* initial idle view behind the start sheet */
+S=newState(); buildField(); S.over=true; updateTimer();
+$('qtext').textContent='พร้อมปลูกหรือยัง?';
+})();
+</script>
+</body>
+</html>
